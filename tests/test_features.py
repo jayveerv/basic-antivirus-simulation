@@ -103,9 +103,11 @@ def test_reports_and_history(tmp_path, scanner, samples):
 
 
 def test_html_report_escapes_names(tmp_path, scanner):
-    p = tmp_path / "<script>.txt"
+    p = tmp_path / "a.txt"
     p.write_text("x")
-    html = open(write_html([scanner.scan_file(str(p))], str(tmp_path / "r.html")), encoding="utf-8").read()
+    r = scanner.scan_file(str(p))
+    r["file"] = "<script>.txt"  # such names are illegal on Windows, so set it directly
+    html = open(write_html([r], str(tmp_path / "r.html")), encoding="utf-8").read()
     assert "<script>.txt" not in html and "&lt;script&gt;.txt" in html
 
 
