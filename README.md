@@ -10,7 +10,7 @@ Built as a SkillFied Mentor cyber security internship project by **Jayveer Vasav
 
 > **Safe by design.** Files are only read, never executed. It is tested with the EICAR test file and harmless samples only. No real malware is used, stored or generated.
 
-**Live demo:** _add your Render link here after deploying_
+**Live demo:** https://basic-antivirus-simulation.onrender.com (free hosting: the first visit after a quiet period can take up to a minute)
 
 ![Scan result](screenshots/02_result_eicar.png)
 
