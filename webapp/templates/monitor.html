@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Real-time monitor</h1>
+<p class="sub">On your own computer, <span class="mono">python scan.py watch &lt;folder&gt;</span> watches a real folder and scans every new or changed file. Here, a simulated watch folder shows the same engine at work: drop a sample in and the monitor picks it up.</p>
+<div class="grid g2">
+  <div class="card">
+    <h2>Drop a file into the watch folder</h2>
+    <div class="samples" style="grid-template-columns:1fr">
+    {% for name, (desc, _) in samples.items() %}
+      <form class="sample" method="post">
+        <div><div class="n">{{ name }}</div><div class="d">{{ desc }}</div></div>
+        <input type="hidden" name="sample" value="{{ name }}"><button class="btn small">Drop</button>
+      </form>
+    {% endfor %}
+    </div>
+    <form method="post" style="margin-top:12px"><input type="hidden" name="change" value="1">
+      <button class="btn" {{ 'disabled' if not files }}>Modify a file already in the folder</button>
+      <span class="muted" style="font-size:13px">Appends ransom-note text to show change detection.</span></form>
+  </div>
+  <div class="card">
+    <h2>Monitor events</h2>
+    {% if log %}
+    <table><tr><th>Time</th><th>Event</th><th>File</th><th>Verdict</th></tr>
+    {% for e in log %}<tr><td class="muted">{{ e.time }}</td><td><span class="tag">{{ e.event }}</span></td>
+      <td><a href="{{ url_for('result', rid=e.id) }}" style="word-break:break-all">{{ e.file }}</a>{% if e.quarantined %}<div class="muted" style="font-size:12px">auto-quarantined</div>{% endif %}</td>
+      <td><span class="v {{ e.verdict }}">{{ e.verdict }}</span> {{ e.score }}</td></tr>{% endfor %}
+    </table>
+    {% else %}<div class="empty">No events yet. Drop a file on the left.</div>{% endif %}
+    <p class="muted" style="font-size:13px;margin:12px 0 0">Files in the watch folder now: {{ files|join(', ') if files else 'none' }}</p>
+  </div>
+</div>
+{% endblock %}

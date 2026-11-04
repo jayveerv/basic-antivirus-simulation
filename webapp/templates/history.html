@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>History dashboard</h1>
+<p class="sub">Every scan from the web page, the real-time monitor and this session.</p>
+<div class="grid g4" style="margin-bottom:16px">
+  <div class="card stat"><b>{{ total }}</b><span>Scans</span></div>
+  <div class="card stat" style="color:var(--green)"><b>{{ stats.Clean }}</b><span>Clean</span></div>
+  <div class="card stat" style="color:var(--amber)"><b>{{ stats.Suspicious }}</b><span>Suspicious</span></div>
+  <div class="card stat" style="color:var(--red)"><b>{{ stats.Malicious }}</b><span>Malicious</span></div>
+</div>
+<div class="grid g2" style="margin-bottom:16px">
+  <div class="card"><h2>Verdicts</h2><div class="bars">
+    {% for v, c in [('Clean','#34d399'),('Suspicious','#f5b83d'),('Malicious','#f0506e')] %}
+    <div class="b"><span class="l">{{ v }}</span><span class="t"><i style="width:{{ (stats[v] / total * 100) if total else 0 }}%;background:{{ c }}"></i></span><b>{{ stats[v] }}</b></div>{% endfor %}
+  </div></div>
+  <div class="card"><h2>Top rules and ATT&amp;CK techniques</h2><div class="bars">
+    {% set mx = (top_rules[0][1] if top_rules else 1) %}
+    {% for n, c in top_rules %}<div class="b"><span class="l">{{ n }}</span><span class="t"><i style="width:{{ c / mx * 100 }}%"></i></span><b>{{ c }}</b></div>{% else %}<div class="empty">No rule hits yet.</div>{% endfor %}
+    {% for m, c in top_mitre %}<span class="tag">{{ m }} &times;{{ c }}</span>{% endfor %}
+  </div></div>
+</div>
+<div class="card">
+  <h2>All scans</h2>
+  {% if items %}
+  <table><tr><th>Time</th><th>File</th><th>Verdict</th><th>Score</th><th class="hide-sm">Source</th><th class="hide-sm">Rules</th></tr>
+  {% for h in items %}<tr><td class="muted">{{ h.time }}</td><td><a href="{{ url_for('result', rid=h.id) }}" style="word-break:break-all">{{ h.file }}</a></td>
+    <td><span class="v {{ h.verdict }}">{{ h.verdict }}</span></td><td>{{ h.score }}</td><td class="hide-sm muted">{{ h.source }}</td>
+    <td class="hide-sm">{% for r in h.rules %}<span class="tag">{{ r }}</span>{% endfor %}</td></tr>{% endfor %}
+  </table>
+  {% else %}<div class="empty">No scans yet.</div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+av_state/
+webapp_data/
+reports/
+demo_files/
+watched/
+.pytest_cache/

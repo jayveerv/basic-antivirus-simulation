@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Quarantine</h1>
+<p class="sub">Detected files are moved here and XOR-obfuscated so they cannot be opened or run by accident. XOR is obfuscation, not encryption.</p>
+<div class="card">
+{% if items %}
+<table>
+  <tr><th>File</th><th>Verdict</th><th class="hide-sm">Detections</th><th class="hide-sm">Quarantined</th><th>Actions</th></tr>
+  {% for i in items|reverse %}
+  <tr>
+    <td><b style="word-break:break-all">{{ i.name }}</b><div class="mono muted" style="font-size:12px">{{ i.sha256[:24] }}&hellip;</div></td>
+    <td><span class="v {{ i.verdict }}">{{ i.verdict }}</span> <span class="muted">{{ i.score }}</span></td>
+    <td class="hide-sm">{% for d in i.detections %}<span class="tag">{{ d }}</span>{% endfor %}</td>
+    <td class="hide-sm muted">{{ i.quarantined_at }}</td>
+    <td><div class="row" style="gap:6px">
+      <form method="post" action="{{ url_for('quarantine_action', qid=i.id, action='restore') }}"><button class="btn small">Restore</button></form>
+      <form method="post" action="{{ url_for('quarantine_action', qid=i.id, action='delete') }}" onsubmit="return confirm('Delete this file permanently?')"><button class="btn small danger">Delete</button></form>
+    </div></td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<div class="empty">Quarantine is empty. Scan the EICAR sample on the <a href="{{ url_for('index') }}">Scan</a> page to see it in action.</div>{% endif %}
+</div>
+{% endblock %}

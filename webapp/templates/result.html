@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ r.file }} - scan result{% endblock %}
+{% block body %}
+{% set col = {'Malicious':'#f0506e','Suspicious':'#f5b83d','Clean':'#34d399'}.get(r.verdict, '#8aa0b5') %}
+<p class="muted" style="margin:0"><a href="{{ url_for('index') }}">&larr; Scan another file</a></p>
+<h1 style="word-break:break-all">{{ r.file }}</h1>
+<p class="sub">{{ r.mode|capitalize }} scan &middot; {{ r.time }} &middot; {{ r.duration_ms }} ms</p>
+
+<div class="grid g2">
+  <div class="card" style="text-align:center">
+    <div class="gauge" style="background:conic-gradient({{ col }} {{ r.score * 3.6 }}deg, #14263a 0)">
+      <div class="in"><div><b style="color:{{ col }}">{{ r.score }}</b><br><span>risk score / 100</span></div></div>
+    </div>
+    <p style="margin:14px 0 4px"><span class="v {{ r.verdict }}" style="font-size:15px;padding:4px 14px">{{ r.verdict }}</span></p>
+    <p class="muted" style="font-size:13px;margin:6px 0 0">Clean &lt; {{ suspicious_at }} &le; Suspicious &lt; {{ malicious_at }} &le; Malicious</p>
+    {% if r.quarantined %}<p class="flash ok" style="margin:14px 0 0">Moved to quarantine (id {{ r.quarantined }}). <a href="{{ url_for('quarantine') }}">Open quarantine</a></p>{% endif %}
+    <div class="row" style="justify-content:center;margin-top:14px">
+      <a class="btn small" href="{{ url_for('report', rid=r.id, fmt='html') }}" target="_blank">HTML report</a>
+      <a class="btn small" href="{{ url_for('report', rid=r.id, fmt='json') }}">JSON report</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Why this score</h2>
+    {% for x in r.reasons %}
+      <div class="reason"><div class="p">+{{ x.points }}</div><div><div class="s">{{ x.source }}</div>{{ x.detail }}</div></div>
+    {% else %}<div class="empty">No signature, rule or heuristic matched.</div>{% endfor %}
+    {% if r.mitre %}<p style="margin:12px 0 0"><span class="muted">MITRE ATT&amp;CK:</span> {% for m in r.mitre %}<span class="tag">{{ m }}</span>{% endfor %}</p>{% endif %}
+  </div>
+</div>
+
+<div class="grid g2" style="margin-top:16px">
+  <div class="card">
+    <h2>File details</h2>
+    <table>
+      <tr><td class="muted">Size</td><td>{{ '{:,}'.format(r.size) }} bytes</td></tr>
+      <tr><td class="muted">Type</td><td>{{ r.file_type }}</td></tr>
+      <tr><td class="muted">Entropy</td><td>{{ r.entropy }} bits/byte</td></tr>
+      <tr><td class="muted">SHA-256</td><td class="mono">{{ r.hashes.sha256 }}</td></tr>
+      <tr><td class="muted">MD5</td><td class="mono">{{ r.hashes.md5 }}</td></tr>
+      <tr><td class="muted">Signature</td><td>{% if r.signature %}{{ r.signature.name }} <span class="muted">({{ r.signature.description }})</span>{% else %}No match{% endif %}</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Matched rules</h2>
+    {% if r.rules %}
+    <table><tr><th>Rule</th><th>ATT&amp;CK</th><th>Severity</th></tr>
+    {% for h in r.rules %}<tr><td><b>{{ h.rule }}</b><div class="muted" style="font-size:13px">{{ h.description }}</div>
+      {% for m in h.matched %}<div class="mono muted" style="font-size:12px">{{ m.id }} &times;{{ m.count }} @{{ m.offset }}: {{ m.sample }}</div>{% endfor %}</td>
+      <td><span class="tag">{{ h.mitre }}</span></td><td>{{ h.severity }}</td></tr>{% endfor %}
+    </table>
+    {% else %}<div class="empty">No rule matched.</div>{% endif %}
+  </div>
+</div>
+{% if r.details and r.details.pe_sections %}
+<div class="card" style="margin-top:16px"><h2>PE sections</h2>
+<table><tr><th>Name</th><th>Raw size</th><th>Entropy</th></tr>{% for s in r.details.pe_sections %}<tr><td class="mono">{{ s.name }}</td><td>{{ s.raw_size }}</td><td>{{ s.entropy }}</td></tr>{% endfor %}</table></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Scan a file</h1>
+<p class="sub">Signature matching, {{ n_rules }} YARA-style rules mapped to MITRE ATT&amp;CK, and heuristic analysis combined into one explainable risk score.</p>
+
+<div class="grid g4" style="margin-bottom:18px">
+  <div class="card stat"><b>{{ total }}</b><span>Scans</span></div>
+  <div class="card stat" style="color:var(--green)"><b>{{ stats.Clean }}</b><span>Clean</span></div>
+  <div class="card stat" style="color:var(--amber)"><b>{{ stats.Suspicious }}</b><span>Suspicious</span></div>
+  <div class="card stat" style="color:var(--red)"><b>{{ stats.Malicious }}</b><span>Malicious &middot; {{ quarantined }} in quarantine</span></div>
+</div>
+
+<div class="grid g2">
+  <form class="card" method="post" action="{{ url_for('scan_upload') }}" enctype="multipart/form-data">
+    <h2>Upload a file</h2>
+    <div class="drop">
+      <div class="muted">Any file up to {{ max_mb }} MB. It is read, never run.</div>
+      <input type="file" name="file" required>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <select name="mode" aria-label="Scan mode">
+        <option value="full">Full scan (signatures + rules + heuristics)</option>
+        <option value="quick">Quick scan (signatures + rules)</option>
+      </select>
+      <label class="opt"><input type="checkbox" name="quarantine" checked> Quarantine if malicious</label>
+      <button class="btn primary" type="submit">Scan file</button>
+    </div>
+  </form>
+
+  <div class="card">
+    <h2>Recent scans</h2>
+    {% if recent %}
+    <table><tr><th>File</th><th>Verdict</th><th>Score</th></tr>
+    {% for h in recent %}<tr><td><a href="{{ url_for('result', rid=h.id) }}">{{ h.file }}</a></td><td><span class="v {{ h.verdict }}">{{ h.verdict }}</span></td><td>{{ h.score }}</td></tr>{% endfor %}
+    </table>
+    {% else %}<div class="empty">No scans yet. Try a sample below.</div>{% endif %}
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h2>Try a safe sample</h2>
+  <p class="muted" style="margin-top:-6px">One click creates the file in your workspace and scans it (full scan). The EICAR file is the industry-standard antivirus test file, not malware.</p>
+  <div class="samples">
+  {% for name, (desc, _) in samples.items() %}
+    <form class="sample" method="post" action="{{ url_for('scan_sample', name=name) }}">
+      <div><div class="n">{{ name }}</div><div class="d">{{ desc }}</div></div>
+      <input type="hidden" name="mode" value="full"><input type="hidden" name="quarantine" value="on">
+      <button class="btn small" type="submit">Scan</button>
+    </form>
+  {% endfor %}
+  </div>
+</div>
+{% endblock %}

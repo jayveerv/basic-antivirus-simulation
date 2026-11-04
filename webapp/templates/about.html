@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>How it works</h1>
+<p class="sub">Three detection layers produce one score from 0 to 100. Every point is shown with its reason.</p>
+<div class="grid g2">
+  <div class="card"><h2>1. Signatures</h2><p>The SHA-256 and MD5 of the file are compared with a JSON database ({{ n_sigs }} entries). A match means a known file: score 100.</p></div>
+  <div class="card"><h2>2. Rules</h2><p>{{ n_rules }} YARA-style rules look for text, hex bytes and regular expressions. Each rule has a severity (high +40, medium +25, low +10) and a MITRE ATT&amp;CK technique.</p></div>
+  <div class="card"><h2>3. Heuristics (full scan)</h2><p>Shannon entropy, suspicious strings, suspicious Windows API names, PE section names and entropy (packing), extension mismatch and double extensions.</p></div>
+  <div class="card"><h2>Verdict</h2><p>Clean below {{ suspicious_at }}, Suspicious from {{ suspicious_at }}, Malicious from {{ malicious_at }}. Malicious files can be quarantined automatically.</p></div>
+</div>
+<div class="card" style="margin-top:16px"><h2>Rules and MITRE ATT&amp;CK mapping</h2>
+<table><tr><th>Rule</th><th>Technique</th><th>Severity</th><th class="hide-sm">Description</th></tr>
+{% for r in rules %}<tr><td class="mono">{{ r.name }}</td><td><span class="tag">{{ r.mitre }}</span></td><td>{{ r.severity }}</td><td class="hide-sm muted">{{ r.description }}</td></tr>{% endfor %}
+</table></div>
+<div class="card" style="margin-top:16px"><h2>Safety</h2>
+<p>This is an educational simulation. Files are only read, never executed. Test it with the EICAR test file and the harmless samples. Do not upload real malware or personal files.</p></div>
+{% endblock %}
